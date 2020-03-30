@@ -1,0 +1,12 @@
+{
+    "id": "{0B7FD699-FC44-0916-EB16-4AAB8351575F}",
+    "author": "Ulrich Bittner",
+    "name": "Treppenhauslichtsteuerung",
+    "url": "https://github.com/ubittner/Treppenhauslichtsteuerung",
+    "compatibility": {
+        "version": "5.2"
+    },
+    "version": "1.00",
+    "build": 3,
+    "date": 1585584000
+}

@@ -1,0 +1,14 @@
+{
+  "id": "{9B7DC4A2-2197-EE7E-1288-6248CD3D7C70}",
+  "name": "Treppenhauslichtsteuerung",
+  "type": 3,
+  "vendor": "NTUB",
+  "url": "https://github.com/ubittner/Treppenhauslichtsteuerung",
+  "aliases": [
+    "Treppenhauslichtsteuerung"
+  ],
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "THLS"
+}
