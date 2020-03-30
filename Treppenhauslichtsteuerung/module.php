@@ -12,7 +12,7 @@
  * @license    	CC BY-NC-SA 4.0
  *              https://creativecommons.org/licenses/by-nc-sa/4.0/
  *
- * @version     1.00-4
+ * @version     1.00-5
  * @date        2020-03-30, 18:00, 1585584000
  * @review      2020-03-30, 18:00
  *
@@ -223,8 +223,6 @@ class Treppenhauslichtsteuerung extends IPSModule
         }
         IPS_SetVariableProfileAssociation($profileName, 0, 'Aus', 'Bulb', 0x0000FF);
         IPS_SetVariableProfileAssociation($profileName, 1, 'An', 'Bulb', 0x00FF00);
-        IPS_SetVariableProfileAssociation($profileName, 2, 'Lichter werden ausgeschaltet', 'Bulb', -1);
-        IPS_SetVariableProfileAssociation($profileName, 3, 'Lichter werden eingeschaltet', 'Bulb', -1);
     }
 
     private function DeleteProfiles(): void
@@ -302,9 +300,21 @@ class Treppenhauslichtsteuerung extends IPSModule
         $this->RegisterTimer('SwitchLightsOff', 0, 'THLS_SwitchLightsOff(' . $this->InstanceID . ');');
     }
 
+    private function SetDutyCycleTimer(): void
+    {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt. (' . microtime(true) . ')', 0);
+        $duration = $this->ReadPropertyInteger('DutyCycle') * 60;
+        $this->SetTimerInterval('SwitchLightsOff', $duration * 1000);
+        $timestamp = time() + $duration;
+        $this->SetValue('DutyCycleInfo', date('d.m.Y, H:i:s', ($timestamp)));
+        $this->SendDebug(__FUNCTION__, 'Die Einschaltdauer wurde festgelegt.', 0);
+    }
+
     private function DeactivateTimer(): void
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt. (' . microtime(true) . ')', 0);
         $this->SetTimerInterval('SwitchLightsOff', 0);
         $this->SetValue('DutyCycleInfo', '-');
+        $this->SendDebug(__FUNCTION__, 'Die Einschaltdauer ist abgelaufen.', 0);
     }
 }

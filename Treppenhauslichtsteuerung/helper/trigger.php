@@ -33,7 +33,7 @@ trait THLS_trigger
             if ($actualValue == $triggerValue) {
                 $trigger = true;
             } else {
-                $this->SendDebug(__FUNCTION__, 'Variable hat nicht ausgelöst.', 0);
+                $this->SendDebug(__FUNCTION__, 'Die Variable ' . $VariableID . ' hat nicht ausgelöst.', 0);
             }
         }
 
@@ -66,14 +66,12 @@ trait THLS_trigger
 
         // We have a trigger value
         if ($trigger) {
-            $this->SendDebug(__FUNCTION__, 'Variable hat ausgelöst.', 0);
-            $duration = $this->ReadPropertyInteger('DutyCycle') * 60;
-            $this->SetTimerInterval('SwitchLightsOff', $duration * 1000);
-            $timestamp = time() + $duration;
-            $this->SetValue('DutyCycleInfo', date('d.m.Y, H:i:s', ($timestamp)));
+            $this->SendDebug(__FUNCTION__, 'Die Variable ' . $VariableID . ' hat ausgelöst.', 0);
             $lightStatus = intval($this->GetValue('LightStatus'));
             if ($lightStatus == 0) {
                 $this->SwitchLightsOn();
+            } else {
+                $this->SetDutyCycleTimer();
             }
         }
     }

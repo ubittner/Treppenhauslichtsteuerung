@@ -16,15 +16,17 @@ trait THLS_lights
             $this->SendDebug(__FUNCTION__, 'Abbruch, es sind keine zu schaltenden Lichter vorhanden!', 0);
             return;
         }
-        $this->SendDebug(__FUNCTION__, 'Lichter werden eingeschaltet.', 0);
-        $this->SetValue('LightStatus', 3);
+        $this->SetDutyCycleTimer();
+        $this->SendDebug(__FUNCTION__, 'Alle Lichter werden eingeschaltet.', 0);
+        $this->SetValue('LightStatus', 1);
         $lights = json_decode($this->ReadPropertyString('LightVariables'));
+        $toggleStatus = [];
         $i = 0;
-        $switchStatus = false;
         foreach ($lights as $light) {
             if ($light->Activated) {
                 $id = $light->ID;
                 if ($id != 0 && @IPS_ObjectExists($id)) {
+                    $toggleStatus[$id] = true;
                     $i++;
                     $switchOnValue = boolval($light->SwitchOnValue);
                     $toggle = @RequestAction($id, $switchOnValue);
@@ -32,24 +34,24 @@ trait THLS_lights
                         IPS_Sleep(self::DELAY);
                         $toggleAgain = @RequestAction($id, $switchOnValue);
                         if (!$toggleAgain) {
-                            $this->SendDebug(__FUNCTION__, 'Fehler, Licht mit der ID ' . $id . ' konnte nicht eingeschaltet werden!', 0);
-                            IPS_LogMessage(__FUNCTION__, 'Fehler, Licht mit der ID ' . $id . ' konnte nicht eingeschaltet werden!');
-                        } else {
-                            $switchStatus = true;
+                            $toggleStatus[$id] = false;
+                            $this->SendDebug(__FUNCTION__, 'Fehler, das Licht mit der ID ' . $id . ' konnte nicht eingeschaltet werden!', 0);
+                            IPS_LogMessage(__FUNCTION__, 'Fehler, das Licht mit der ID ' . $id . ' konnte nicht eingeschaltet werden!');
                         }
-                    } else {
-                        $switchStatus = true;
                     }
                     if ($i < $amount) {
-                        $this->SendDebug(__FUNCTION__, 'Verzögerung wird ausgeführt.', 0);
+                        $this->SendDebug(__FUNCTION__, 'Die Verzögerung wird ausgeführt.', 0);
                         IPS_Sleep(self::DELAY);
                     }
                 }
             }
         }
-        if ($switchStatus) {
-            $this->SendDebug(__FUNCTION__, 'Lichter wurden eingeschaltet.', 0);
-            $this->SetValue('LightStatus', 1);
+        if (!in_array(true, $toggleStatus)) {
+            // Revert switch
+            $this->SetValue('LightStatus', 0);
+        }
+        if (in_array(true, $toggleStatus)) {
+            $this->SendDebug(__FUNCTION__, 'Die Lichter wurden eingeschaltet.', 0);
         }
     }
 
@@ -65,15 +67,16 @@ trait THLS_lights
             $this->SendDebug(__FUNCTION__, 'Abbruch, es sind keine zu schaltenden Lichter vorhanden!', 0);
             return;
         }
-        $this->SendDebug(__FUNCTION__, 'Lichter werden ausgeschaltet.', 0);
-        $this->SetValue('LightStatus', 2);
+        $this->SendDebug(__FUNCTION__, 'Alle Lichter werden ausgeschaltet.', 0);
+        $this->SetValue('LightStatus', 0);
         $lights = json_decode($this->ReadPropertyString('LightVariables'));
+        $toggleStatus = [];
         $i = 0;
-        $switchStatus = false;
         foreach ($lights as $light) {
             if ($light->Activated) {
                 $id = $light->ID;
                 if ($id != 0 && @IPS_ObjectExists($id)) {
+                    $toggleStatus[$id] = true;
                     $i++;
                     $switchOffValue = boolval($light->SwitchOffValue);
                     $toggle = @RequestAction($id, $switchOffValue);
@@ -81,24 +84,24 @@ trait THLS_lights
                         IPS_Sleep(self::DELAY);
                         $toggleAgain = @RequestAction($id, $switchOffValue);
                         if (!$toggleAgain) {
-                            $this->SendDebug(__FUNCTION__, 'Fehler, Licht mit der ID ' . $id . ' konnte nicht ausgeschaltet werden!', 0);
-                            IPS_LogMessage(__FUNCTION__, 'Fehler, Licht mit der ID ' . $id . ' konnte nicht ausgeschaltet werden!');
-                        } else {
-                            $switchStatus = true;
+                            $toggleStatus[$id] = false;
+                            $this->SendDebug(__FUNCTION__, 'Fehler, das Licht mit der ID ' . $id . ' konnte nicht ausgeschaltet werden!', 0);
+                            IPS_LogMessage(__FUNCTION__, 'Fehler, das Licht mit der ID ' . $id . ' konnte nicht ausgeschaltet werden!');
                         }
-                    } else {
-                        $switchStatus = true;
                     }
                     if ($i < $amount) {
-                        $this->SendDebug(__FUNCTION__, 'Verzögerung wird ausgeführt.', 0);
+                        $this->SendDebug(__FUNCTION__, 'Die Verzögerung wird ausgeführt.', 0);
                         IPS_Sleep(self::DELAY);
                     }
                 }
             }
         }
-        if ($switchStatus) {
-            $this->SendDebug(__FUNCTION__, 'Lichter wurden ausgeschaltet.', 0);
-            $this->SetValue('LightStatus', 0);
+        if (!in_array(true, $toggleStatus)) {
+            // Revert switch
+            $this->SetValue('LightStatus', 1);
+        }
+        if (in_array(true, $toggleStatus)) {
+            $this->SendDebug(__FUNCTION__, 'Die Lichter wurden ausgeschaltet.', 0);
         }
     }
 
