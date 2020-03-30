@@ -12,7 +12,7 @@
  * @license    	CC BY-NC-SA 4.0
  *              https://creativecommons.org/licenses/by-nc-sa/4.0/
  *
- * @version     1.00-3
+ * @version     1.00-4
  * @date        2020-03-30, 18:00, 1585584000
  * @review      2020-03-30, 18:00
  *
@@ -39,7 +39,7 @@ class Treppenhauslichtsteuerung extends IPSModule
     use THLS_trigger;
 
     // Constants
-    private const DELAY = 1250;
+    private const DELAY = 250;
 
     public function Create()
     {
