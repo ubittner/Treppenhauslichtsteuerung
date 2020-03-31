@@ -64,12 +64,20 @@ trait THLS_trigger
             }
         }
 
+        // Check light status
+        $lightStatus = intval($this->GetValue('Light'));
+        if ($lightStatus == 2) {
+            if ($trigger) {
+                $this->SendDebug(__FUNCTION__, 'Abbruch, die Lichter sind bereits dauerhaft eingeschaltet!', 0);
+            }
+            $trigger = false;
+        }
+
         // We have a trigger value
         if ($trigger) {
             $this->SendDebug(__FUNCTION__, 'Die Variable ' . $VariableID . ' hat ausgelöst.', 0);
-            $lightStatus = intval($this->GetValue('LightStatus'));
             if ($lightStatus == 0) {
-                $this->SwitchLightsOn();
+                $this->SwitchLightsOn(true);
             } else {
                 $this->SetDutyCycleTimer();
             }

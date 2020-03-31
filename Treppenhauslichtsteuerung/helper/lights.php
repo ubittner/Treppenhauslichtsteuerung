@@ -7,8 +7,12 @@ trait THLS_lights
 {
     /**
      * Switches the lights on.
+     *
+     * @param bool $UseDutyCycle
+     * false    = don't use
+     * true    = use
      */
-    public function SwitchLightsOn(): void
+    public function SwitchLightsOn(bool $UseDutyCycle): void
     {
         $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt. (' . microtime(true) . ')', 0);
         $amount = $this->GetAmountOfLights();
@@ -16,9 +20,20 @@ trait THLS_lights
             $this->SendDebug(__FUNCTION__, 'Abbruch, es sind keine zu schaltenden Lichter vorhanden!', 0);
             return;
         }
-        $this->SetDutyCycleTimer();
+        $actualValue = $this->GetValue('Light');
+        $newValue = 2;
+        if ($UseDutyCycle) {
+            $this->SetDutyCycleTimer();
+            $newValue = 1;
+        } else {
+            $this->DeactivateDutyCycleTimer();
+        }
         $this->SendDebug(__FUNCTION__, 'Alle Lichter werden eingeschaltet.', 0);
-        $this->SetValue('LightStatus', 1);
+        $this->SetValue('Light', $newValue);
+        if ($actualValue == 1) {
+            $this->SendDebug(__FUNCTION__, 'Abbruch, die Lichter sind bereits eingeschaltet!', 0);
+            return;
+        }
         $lights = json_decode($this->ReadPropertyString('LightVariables'));
         $toggleStatus = [];
         $i = 0;
@@ -48,7 +63,7 @@ trait THLS_lights
         }
         if (!in_array(true, $toggleStatus)) {
             // Revert switch
-            $this->SetValue('LightStatus', 0);
+            $this->SetValue('Light', $actualValue);
         }
         if (in_array(true, $toggleStatus)) {
             $this->SendDebug(__FUNCTION__, 'Die Lichter wurden eingeschaltet.', 0);
@@ -61,14 +76,15 @@ trait THLS_lights
     public function SwitchLightsOff(): void
     {
         $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt. (' . microtime(true) . ')', 0);
-        $this->DeactivateTimer();
+        $this->DeactivateDutyCycleTimer();
         $amount = $this->GetAmountOfLights();
         if ($amount == 0) {
             $this->SendDebug(__FUNCTION__, 'Abbruch, es sind keine zu schaltenden Lichter vorhanden!', 0);
             return;
         }
         $this->SendDebug(__FUNCTION__, 'Alle Lichter werden ausgeschaltet.', 0);
-        $this->SetValue('LightStatus', 0);
+        $actualValue = $this->GetValue('Light');
+        $this->SetValue('Light', 0);
         $lights = json_decode($this->ReadPropertyString('LightVariables'));
         $toggleStatus = [];
         $i = 0;
@@ -98,7 +114,7 @@ trait THLS_lights
         }
         if (!in_array(true, $toggleStatus)) {
             // Revert switch
-            $this->SetValue('LightStatus', 1);
+            $this->SetValue('Light', $actualValue);
         }
         if (in_array(true, $toggleStatus)) {
             $this->SendDebug(__FUNCTION__, 'Die Lichter wurden ausgeschaltet.', 0);

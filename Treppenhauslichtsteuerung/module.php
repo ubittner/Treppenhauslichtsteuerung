@@ -12,7 +12,7 @@
  * @license    	CC BY-NC-SA 4.0
  *              https://creativecommons.org/licenses/by-nc-sa/4.0/
  *
- * @version     1.00-5
+ * @version     1.00-6
  * @date        2020-03-30, 18:00, 1585584000
  * @review      2020-03-30, 18:00
  *
@@ -56,7 +56,7 @@ class Treppenhauslichtsteuerung extends IPSModule
         $this->RegisterVariables();
 
         // Register timers
-        $this->RegisterTimers();
+        $this->RegisterDutyCycleTimer();
     }
 
     public function ApplyChanges()
@@ -132,6 +132,39 @@ class Treppenhauslichtsteuerung extends IPSModule
     public function GetConfigurationForm()
     {
         $formData = json_decode(file_get_contents(__DIR__ . '/form.json'));
+        // Trigger
+        $triggerVariables = json_decode($this->ReadPropertyString('TriggerVariables'));
+        if (!empty($triggerVariables)) {
+            foreach ($triggerVariables as $variable) {
+                $rowColor = '';
+                if (!IPS_ObjectExists($variable->ID)) {
+                    $rowColor = '#FFC0C0'; // light red
+                }
+                $formData->elements[2]->items[1]->values[] = [
+                    'Activated'    => $variable->Activated,
+                    'ID'           => $variable->ID,
+                    'Description'  => $variable->Description,
+                    'TriggerValue' => $variable->TriggerValue,
+                    'rowColor'     => $rowColor];
+            }
+        }
+        // Lights
+        $lightVariables = json_decode($this->ReadPropertyString('LightVariables'));
+        if (!empty($lightVariables)) {
+            foreach ($lightVariables as $variable) {
+                $rowColor = '';
+                if (!IPS_ObjectExists($variable->ID)) {
+                    $rowColor = '#FFC0C0'; // light red
+                }
+                $formData->elements[5]->items[1]->values[] = [
+                    'Activated'      => $variable->Activated,
+                    'ID'             => $variable->ID,
+                    'Description'    => $variable->Description,
+                    'SwitchOnValue'  => $variable->SwitchOnValue,
+                    'SwitchOffValue' => $variable->SwitchOffValue,
+                    'rowColor'       => $rowColor];
+            }
+        }
         // Registered messages
         $registeredVariables = $this->GetMessageList();
         foreach ($registeredVariables as $senderID => $messageID) {
@@ -183,6 +216,10 @@ class Treppenhauslichtsteuerung extends IPSModule
                 $this->ToggleAutomaticMode($Value);
                 break;
 
+            case 'Light':
+                $this->ToggleLight($Value);
+                break;
+
         }
     }
 
@@ -191,13 +228,34 @@ class Treppenhauslichtsteuerung extends IPSModule
         $this->SetValue('AutomaticMode', $State);
     }
 
+    public function ToggleLight(int $State): void
+    {
+        switch ($State) {
+            // Off
+            case 0:
+                $this->SwitchLightsOff();
+                break;
+
+            // Timer
+            case 1:
+                $this->SwitchLightsOn(true);
+                break;
+
+            // On
+            case 2:
+                $this->SwitchLightsOn(false);
+                break;
+
+        }
+    }
+
     //#################### Private
 
     private function RegisterProperties(): void
     {
         // Visibility
         $this->RegisterPropertyBoolean('EnableAutomaticMode', true);
-        $this->RegisterPropertyBoolean('EnableLightStatus', true);
+        $this->RegisterPropertyBoolean('EnableLight', true);
         $this->RegisterPropertyBoolean('EnableDutyCycle', true);
 
         // Trigger
@@ -209,6 +267,7 @@ class Treppenhauslichtsteuerung extends IPSModule
 
         // Duty cycle
         $this->RegisterPropertyInteger('DutyCycle', 3);
+        $this->RegisterPropertyInteger('DutyCycleUnit', 0);
 
         // Lights
         $this->RegisterPropertyString('LightVariables', '[]');
@@ -217,17 +276,18 @@ class Treppenhauslichtsteuerung extends IPSModule
     private function CreateProfiles(): void
     {
         // Light status
-        $profileName = 'THLS.' . $this->InstanceID . '.LightStatus';
+        $profileName = 'THLS.' . $this->InstanceID . '.Light';
         if (!IPS_VariableProfileExists($profileName)) {
             IPS_CreateVariableProfile($profileName, 1);
         }
         IPS_SetVariableProfileAssociation($profileName, 0, 'Aus', 'Bulb', 0x0000FF);
-        IPS_SetVariableProfileAssociation($profileName, 1, 'An', 'Bulb', 0x00FF00);
+        IPS_SetVariableProfileAssociation($profileName, 1, 'Zeitschaltuhr', 'Bulb', 0xFFFF00);
+        IPS_SetVariableProfileAssociation($profileName, 2, 'An', 'Bulb', 0x00FF00);
     }
 
     private function DeleteProfiles(): void
     {
-        $profiles = ['LightStatus'];
+        $profiles = ['Light'];
         foreach ($profiles as $profile) {
             $profileName = 'THLS.' . $this->InstanceID . '.' . $profile;
             if (@IPS_VariableProfileExists($profileName)) {
@@ -242,9 +302,10 @@ class Treppenhauslichtsteuerung extends IPSModule
         $this->RegisterVariableBoolean('AutomaticMode', 'Automatik', '~Switch', 0);
         $this->EnableAction('AutomaticMode');
 
-        // Light status
-        $profile = 'THLS.' . $this->InstanceID . '.LightStatus';
-        $this->RegisterVariableInteger('LightStatus', 'Lichtstatus', $profile, 1);
+        // Light
+        $profile = 'THLS.' . $this->InstanceID . '.Light';
+        $this->RegisterVariableInteger('Light', 'Licht', $profile, 1);
+        $this->EnableAction('Light');
 
         // Duty cycle info
         $this->RegisterVariableString('DutyCycleInfo', 'Einschaltdauer bis', '', 2);
@@ -257,8 +318,8 @@ class Treppenhauslichtsteuerung extends IPSModule
         // Automatic mode
         IPS_SetHidden($this->GetIDForIdent('AutomaticMode'), !$this->ReadPropertyBoolean('EnableAutomaticMode'));
 
-        // Light status
-        IPS_SetHidden($this->GetIDForIdent('LightStatus'), !$this->ReadPropertyBoolean('EnableLightStatus'));
+        // Light
+        IPS_SetHidden($this->GetIDForIdent('Light'), !$this->ReadPropertyBoolean('EnableLight'));
 
         // Duty cycle info
         IPS_SetHidden($this->GetIDForIdent('DutyCycleInfo'), !$this->ReadPropertyBoolean('EnableDutyCycle'));
@@ -295,7 +356,7 @@ class Treppenhauslichtsteuerung extends IPSModule
         }
     }
 
-    private function RegisterTimers(): void
+    private function RegisterDutyCycleTimer(): void
     {
         $this->RegisterTimer('SwitchLightsOff', 0, 'THLS_SwitchLightsOff(' . $this->InstanceID . ');');
     }
@@ -303,18 +364,33 @@ class Treppenhauslichtsteuerung extends IPSModule
     private function SetDutyCycleTimer(): void
     {
         $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt. (' . microtime(true) . ')', 0);
-        $duration = $this->ReadPropertyInteger('DutyCycle') * 60;
+        $unit = $this->ReadPropertyInteger('DutyCycleUnit');
+        switch ($unit) {
+            // Seconds
+            case 0:
+                $duration = $this->ReadPropertyInteger('DutyCycle');
+                break;
+
+            // Minutes
+            case 1:
+                $duration = $this->ReadPropertyInteger('DutyCycle') * 60;
+                break;
+
+            default:
+                $duration = 60;
+
+        }
         $this->SetTimerInterval('SwitchLightsOff', $duration * 1000);
         $timestamp = time() + $duration;
         $this->SetValue('DutyCycleInfo', date('d.m.Y, H:i:s', ($timestamp)));
-        $this->SendDebug(__FUNCTION__, 'Die Einschaltdauer wurde festgelegt.', 0);
+        $this->SendDebug(__FUNCTION__, 'Der Timer wurde aktiviert und die Einschaltdauer wurde festgelegt.', 0);
     }
 
-    private function DeactivateTimer(): void
+    private function DeactivateDutyCycleTimer(): void
     {
         $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt. (' . microtime(true) . ')', 0);
         $this->SetTimerInterval('SwitchLightsOff', 0);
         $this->SetValue('DutyCycleInfo', '-');
-        $this->SendDebug(__FUNCTION__, 'Die Einschaltdauer ist abgelaufen.', 0);
+        $this->SendDebug(__FUNCTION__, 'Der Timer wurde deaktiviert.', 0);
     }
 }

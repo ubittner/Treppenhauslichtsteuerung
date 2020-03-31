@@ -26,7 +26,7 @@
         },
         {
           "type": "Label",
-          "caption": "Version:\t\t\t1.00-5"
+          "caption": "Version:\t\t\t1.00-6"
         },
         {
           "type": "Label",
@@ -57,8 +57,8 @@
         },
         {
           "type": "CheckBox",
-          "name": "EnableLightStatus",
-          "caption": "Lichtstatus"
+          "name": "EnableLight",
+          "caption": "Licht"
         },
         {
           "type": "CheckBox",
@@ -159,11 +159,11 @@
               "caption": "Einschalten wenn",
               "options": [
                 {
-                  "caption": "0 - Es ist Tag",
+                  "caption": "Es ist Tag",
                   "value": 0
                 },
                 {
-                  "caption": "1 - Es ist Nacht",
+                  "caption": "Es ist Nacht",
                   "value": 1
                 }
               ]
@@ -177,10 +177,33 @@
       "caption": "Einschaltdauer",
       "items": [
         {
-          "type": "NumberSpinner",
-          "name": "DutyCycle",
-          "caption": "Einschaltdauer",
-          "suffix": "min"
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "NumberSpinner",
+              "name": "DutyCycle",
+              "caption": "Dauer"
+            },
+            {
+              "type": "Label",
+              "caption": " "
+            },
+            {
+              "type": "Select",
+              "name": "DutyCycleUnit",
+              "caption": "Einheit",
+              "options": [
+                {
+                  "caption": "Sekunden",
+                  "value": 0
+                },
+                {
+                  "caption": "Minuten",
+                  "value": 1
+                }
+              ]
+            }
+          ]
         }
       ]
     },
