@@ -26,7 +26,7 @@
         },
         {
           "type": "Label",
-          "caption": "Version:\t\t\t1.00-8"
+          "caption": "Version:\t\t\t1.00-9"
         },
         {
           "type": "Label",
@@ -129,6 +129,29 @@
                   {
                     "caption": "1 - true",
                     "value": 1
+                  }
+                ]
+              }
+            },
+            {
+              "name": "TriggerAction",
+              "caption": "Aktion",
+              "width": "160px",
+              "add": 1,
+              "edit": {
+                "type": "Select",
+                "options": [
+                  {
+                    "caption": "Ausschalten",
+                    "value": 0
+                  },
+                  {
+                    "caption": "Timerfunktion",
+                    "value": 1
+                  },
+                  {
+                    "caption": "Einschalten",
+                    "value": 2
                   }
                 ]
               }

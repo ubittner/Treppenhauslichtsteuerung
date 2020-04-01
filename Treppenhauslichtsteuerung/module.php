@@ -12,7 +12,7 @@
  * @license    	CC BY-NC-SA 4.0
  *              https://creativecommons.org/licenses/by-nc-sa/4.0/
  *
- * @version     1.00-8
+ * @version     1.00-9
  * @date        2020-03-30, 18:00, 1585584000
  * @review      2020-03-30, 18:00
  *
@@ -140,12 +140,7 @@ class Treppenhauslichtsteuerung extends IPSModule
                 if (!IPS_ObjectExists($variable->ID)) {
                     $rowColor = '#FFC0C0'; // light red
                 }
-                $formData->elements[2]->items[1]->values[] = [
-                    'Activated'    => $variable->Activated,
-                    'ID'           => $variable->ID,
-                    'Description'  => $variable->Description,
-                    'TriggerValue' => $variable->TriggerValue,
-                    'rowColor'     => $rowColor];
+                $formData->elements[2]->items[1]->values[] = ['rowColor' => $rowColor];
             }
         }
         // Lights
@@ -156,13 +151,7 @@ class Treppenhauslichtsteuerung extends IPSModule
                 if (!IPS_ObjectExists($variable->ID)) {
                     $rowColor = '#FFC0C0'; // light red
                 }
-                $formData->elements[5]->items[1]->values[] = [
-                    'Activated'      => $variable->Activated,
-                    'ID'             => $variable->ID,
-                    'Description'    => $variable->Description,
-                    'SwitchOnValue'  => $variable->SwitchOnValue,
-                    'SwitchOffValue' => $variable->SwitchOffValue,
-                    'rowColor'       => $rowColor];
+                $formData->elements[5]->items[1]->values[] = ['rowColor' => $rowColor];
             }
         }
         // Registered messages
@@ -281,7 +270,7 @@ class Treppenhauslichtsteuerung extends IPSModule
             IPS_CreateVariableProfile($profileName, 1);
         }
         IPS_SetVariableProfileAssociation($profileName, 0, 'Aus', 'Bulb', 0x0000FF);
-        IPS_SetVariableProfileAssociation($profileName, 1, 'Zeitschaltuhr', 'Bulb', 0xFFFF00);
+        IPS_SetVariableProfileAssociation($profileName, 1, 'Timer', 'Bulb', 0xFFFF00);
         IPS_SetVariableProfileAssociation($profileName, 2, 'An', 'Bulb', 0x00FF00);
     }
 

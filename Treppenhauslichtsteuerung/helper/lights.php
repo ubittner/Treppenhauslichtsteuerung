@@ -30,7 +30,7 @@ trait THLS_lights
         }
         $this->SendDebug(__FUNCTION__, 'Alle Lichter werden eingeschaltet.', 0);
         $this->SetValue('Light', $newValue);
-        if ($actualValue == 1) {
+        if ($actualValue == 1 || $actualValue == 2) {
             $this->SendDebug(__FUNCTION__, 'Abbruch, die Lichter sind bereits eingeschaltet!', 0);
             return;
         }
@@ -85,6 +85,10 @@ trait THLS_lights
         $this->SendDebug(__FUNCTION__, 'Alle Lichter werden ausgeschaltet.', 0);
         $actualValue = $this->GetValue('Light');
         $this->SetValue('Light', 0);
+        if ($actualValue == 0) {
+            $this->SendDebug(__FUNCTION__, 'Abbruch, die Lichter sind bereits ausgeschaltet!', 0);
+            return;
+        }
         $lights = json_decode($this->ReadPropertyString('LightVariables'));
         $toggleStatus = [];
         $i = 0;
