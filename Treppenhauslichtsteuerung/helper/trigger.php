@@ -59,6 +59,11 @@ trait THLS_trigger
                             return;
                         }
 
+                        if ($this->GetValue('Light') == 2) {
+                            $this->SendDebug(__FUNCTION__, 'Abbruch, die Lichter sind bereits dauerhaft eingeschaltet!', 0);
+                            return;
+                        }
+
                         // Check twilight
                         $checkTwilight = true;
                         $twilight = $this->ReadPropertyInteger('TwilightStatus');
