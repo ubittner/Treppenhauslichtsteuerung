@@ -264,7 +264,7 @@ class Treppenhauslichtsteuerung extends IPSModule
 
     private function CreateProfiles(): void
     {
-        // Light status
+        // Light
         $profileName = 'THLS.' . $this->InstanceID . '.Light';
         if (!IPS_VariableProfileExists($profileName)) {
             IPS_CreateVariableProfile($profileName, 1);
